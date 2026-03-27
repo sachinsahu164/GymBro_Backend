@@ -15,5 +15,5 @@ public class ProfileRequest {
     private Double height;
     private Double weight;
     private String goal;
-    private String ActivityLevel;
+    private String activityLevel;
 }

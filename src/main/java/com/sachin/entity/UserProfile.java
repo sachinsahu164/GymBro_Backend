@@ -22,7 +22,7 @@ public class UserProfile {
     private Double height;
     private Double weight;
     private String goal;
-    private String ActivityLevel;
+    private String activityLevel;
   //  private String dietPreference;
 
     @OneToOne(fetch = FetchType.LAZY)

@@ -1,5 +1,6 @@
 package com.sachin.SecurityRoom.controller;
 
+import com.sachin.SecurityRoom.Jwt.JwtService;
 import com.sachin.SecurityRoom.dto.AuthResponse;
 import com.sachin.SecurityRoom.dto.LoginRequest;
 import com.sachin.SecurityRoom.dto.RegisterRequest;
@@ -22,6 +23,7 @@ public class AuthController {
 
     private final UserService userService;
     private final AuthenticationManager authenticationManager;
+    private final JwtService jwtService;   // ✅ JwtService inject
 
     @PostMapping("/register")
     public ResponseEntity<String> register(@Valid @RequestBody RegisterRequest request) {
@@ -33,23 +35,32 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public ResponseEntity<AuthResponse> login(@RequestBody LoginRequest request) {
+    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
 
-        authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        request.getEmail(),
-                        request.getPassword()
-                )
-        );
+        try {
 
-        // 🔥 Yaha se important part start hota hai
+            // 1️⃣ Authenticate user
+            authenticationManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(
+                            request.getEmail(),
+                            request.getPassword()
+                    )
+            );
 
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED)
+                    .body("Invalid credentials");
+        }
+
+        // 2️⃣ Fetch user
         user_auth user = userService.findByEmail(request.getEmail());
 
-        String dummyToken = "TEMP_TOKEN"; // Abhi JWT nahi laga rahe
+        // 3️⃣ Generate JWT token using JwtService
+        String token = jwtService.generateToken(user.getEmail());
 
+        // 4️⃣ Response
         AuthResponse response = AuthResponse.builder()
-                .token(dummyToken)
+                .token(token)
                 .onboardingCompleted(user.isOnboardingCompleted())
                 .build();
 

@@ -1,6 +1,5 @@
 package com.sachin.service;
 
-
 import com.sachin.SecurityRoom.entity.user_auth;
 import com.sachin.SecurityRoom.repository.UserRepository;
 import com.sachin.dto.ProfileRequest;
@@ -8,6 +7,7 @@ import com.sachin.dto.ProfileResponse;
 import com.sachin.entity.UserProfile;
 import com.sachin.repository.UserProfileRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -17,11 +17,21 @@ public class ProfileServiceImpl implements ProfileService {
     private final UserRepository userAuthRepository;
     private final UserProfileRepository userProfileRepository;
 
-    @Override
-    public void createOrUpdateProfile(ProfileRequest request, String email) {
+    // 🔥 Get current logged-in user from JWT
+    private user_auth getCurrentUser() {
+        String email = SecurityContextHolder.getContext()
+                .getAuthentication()
+                .getName();
 
-        user_auth userAuth = userAuthRepository.findByEmail(email)
+        return userAuthRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
+    }
+
+    // ✅ CREATE OR UPDATE PROFILE
+    @Override
+    public void createOrUpdateProfile(ProfileRequest request) {
+
+        user_auth userAuth = getCurrentUser();
 
         UserProfile profile = userProfileRepository.findByUserAuth(userAuth)
                 .orElse(UserProfile.builder()
@@ -34,19 +44,20 @@ public class ProfileServiceImpl implements ProfileService {
         profile.setWeight(request.getWeight());
         profile.setGoal(request.getGoal());
         profile.setActivityLevel(request.getActivityLevel());
-       // profile.setDietPreference(request.getDietPreference());
+        // profile.setDietPreference(request.getDietPreference());
 
         userProfileRepository.save(profile);
 
+        // Mark onboarding completed
         userAuth.setOnboardingCompleted(true);
         userAuthRepository.save(userAuth);
     }
 
+    // ✅ GET PROFILE
     @Override
-    public ProfileResponse getProfile(String email) {
+    public ProfileResponse getProfile() {
 
-        user_auth userAuth = userAuthRepository.findByEmail(email)
-                .orElseThrow(() -> new RuntimeException("User not found"));
+        user_auth userAuth = getCurrentUser();
 
         UserProfile profile = userProfileRepository.findByUserAuth(userAuth)
                 .orElseThrow(() -> new RuntimeException("Profile not found"));
@@ -57,7 +68,7 @@ public class ProfileServiceImpl implements ProfileService {
                 .height(profile.getHeight())
                 .weight(profile.getWeight())
                 .goal(profile.getGoal())
-                .ActivityLevel(profile.getActivityLevel())
+                .activityLevel(profile.getActivityLevel())
                 //.dietPreference(profile.getDietPreference())
                 .build();
     }
