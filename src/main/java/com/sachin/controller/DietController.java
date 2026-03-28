@@ -40,6 +40,8 @@ public class DietController {
     public DailySummaryResponse getSummary() {
         return dietService.getDailySummary();
     }
+
+
     @PostMapping("/meal-group")
     public MealGroupResponse addMealGroup(@RequestBody MealGroupRequest request) {
         return dietService.addMealGroup(request);
