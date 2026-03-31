@@ -1,6 +1,5 @@
 package com.sachin.dto;
 
-
 import lombok.*;
 
 @Getter
@@ -15,6 +14,11 @@ public class DailySummaryResponse {
     private int remainingCalories;
 
     private int protein;
+    private int targetProtein;
+
     private int carbs;
+    private int targetCarbs;
+
     private int fat;
+    private int targetFat;
 }
